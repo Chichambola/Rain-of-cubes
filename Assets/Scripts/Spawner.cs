@@ -5,7 +5,7 @@ using UnityEngine;
 
 public class Spawner : MonoBehaviour
 {
-    [SerializeField] private Cube _cube;
+    [SerializeField] private Cube _cubePrefab;
     [SerializeField] private Collider _spawnArea;
     [SerializeField, Range(1,5)] private int  _delay;
     [SerializeField] private int _poolCapacity;
@@ -22,7 +22,7 @@ public class Spawner : MonoBehaviour
     private void Awake()
     {
         _pool = new ObjectPool<Cube>(
-            createFunc: () => Instantiate(_cube),
+            createFunc: () => Instantiate(_cubePrefab),
             actionOnGet: (obj) => ActionOnGet(obj),
             actionOnRelease: (obj) => ActionOnRealese(obj),
             actionOnDestroy: (obj) => Destroy(obj),
@@ -43,8 +43,6 @@ public class Spawner : MonoBehaviour
 
     private void ActionOnGet(Cube cube)
     {
-        _cube.OldEnough += ActionOnRealese;
-
         float spawnAreaMinX = _spawnArea.bounds.min.x;
         float spawnAreaMaxX = _spawnArea.bounds.max.x;
 
@@ -58,6 +56,8 @@ public class Spawner : MonoBehaviour
         cube.gameObject.transform.position = new Vector3(cubePositionX, cubePositionY, cubePositionZ);
 
         cube.gameObject.SetActive(true);
+
+        cube.OldEnough += Release;
     }
 
     private IEnumerator Spawn()
@@ -70,12 +70,20 @@ public class Spawner : MonoBehaviour
         }
     }
 
+    private void Release(Cube cube)
+    {
+        if (cube.gameObject.activeSelf) 
+        {
+            _pool.Release(cube);
+        }
+    }
+
     private void ActionOnRealese(Cube cube)
     {
-        _pool.Release(cube);
-
-        _cube.OldEnough -= ActionOnRealese;
+        cube.OldEnough -= ActionOnRealese;
 
         cube.gameObject.SetActive(false);
+
+        cube.ResetCharactiristics();
     }
 }

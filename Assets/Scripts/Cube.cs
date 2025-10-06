@@ -12,6 +12,7 @@ public class Cube : MonoBehaviour
     private int _currentLife;
     private int _lifespan;
     private bool _isCollisonOccured = false;
+    private Color _baseColor = Color.white;
     private MeshRenderer _meshRenderer;
     private Rigidbody _rigiRigidbody;
 
@@ -25,11 +26,9 @@ public class Cube : MonoBehaviour
         _lifespan = Random.Range(_minLifespan, _maxLifespan);
     }
 
-    private void OnCollisionEnter()
+    private void OnCollisionEnter(Collision collision)
     {
-        OldEnough?.Invoke(this);
-
-        if (_isCollisonOccured == false)
+        if (_isCollisonOccured == false && collision.collider.TryGetComponent<Platform>(out _))
         {
             _meshRenderer.material.color = Random.ColorHSV();
 
@@ -52,5 +51,15 @@ public class Cube : MonoBehaviour
 
             yield return new WaitForSecondsRealtime(delay);
         }
+
+        if (IsDead)
+            OldEnough?.Invoke(this);
+    }
+
+    public void ResetCharactiristics()
+    {
+        _currentLife = 0;
+        _isCollisonOccured = false;
+        _meshRenderer.material.color = _baseColor;
     }
 }
