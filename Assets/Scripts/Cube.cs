@@ -47,8 +47,6 @@ public class Cube : MonoBehaviour
         {
             _currentLife++;
 
-            Debug.Log(_currentLife);
-
             yield return new WaitForSecondsRealtime(delay);
         }
 
