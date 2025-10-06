@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using Random = UnityEngine.Random;
 using UnityEngine;
 
-[RequireComponent(typeof(MeshRenderer))]
+[RequireComponent(typeof(MeshRenderer), typeof(Rigidbody))]
 public class Cube : MonoBehaviour
 {
     private int _maxLifespan = 5;
@@ -13,18 +13,22 @@ public class Cube : MonoBehaviour
     private int _lifespan;
     private bool _isCollisonOccured = false;
     private MeshRenderer _meshRenderer;
+    private Rigidbody _rigiRigidbody;
 
     public event Action<Cube> OldEnough;
     public bool IsDead => _currentLife == _lifespan;
 
     private void Awake()
     {
+        _rigiRigidbody = GetComponent<Rigidbody>();
         _meshRenderer = GetComponent<MeshRenderer>();
         _lifespan = Random.Range(_minLifespan, _maxLifespan);
     }
 
     private void OnCollisionEnter()
     {
+        OldEnough?.Invoke(this);
+
         if (_isCollisonOccured == false)
         {
             _meshRenderer.material.color = Random.ColorHSV();
@@ -47,11 +51,6 @@ public class Cube : MonoBehaviour
             Debug.Log(_currentLife);
 
             yield return new WaitForSecondsRealtime(delay);
-        }
-
-        if (IsDead) 
-        {
-            OldEnough?.Invoke(this);
         }
     }
 }

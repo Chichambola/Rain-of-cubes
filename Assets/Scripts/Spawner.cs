@@ -31,16 +31,6 @@ public class Spawner : MonoBehaviour
             maxSize: _maxPoolCapacity);
     }
 
-    private void OnEnable()
-    {
-        _cube.OldEnough += ActionOnRealese;
-    }
-
-    private void OnDisable()
-    {
-        _cube.OldEnough -= ActionOnRealese;
-    }
-
     private void Start()
     {
         StartCoroutine(Spawn());
@@ -53,6 +43,8 @@ public class Spawner : MonoBehaviour
 
     private void ActionOnGet(Cube cube)
     {
+        _cube.OldEnough += ActionOnRealese;
+
         float spawnAreaMinX = _spawnArea.bounds.min.x;
         float spawnAreaMaxX = _spawnArea.bounds.max.x;
 
@@ -80,6 +72,10 @@ public class Spawner : MonoBehaviour
 
     private void ActionOnRealese(Cube cube)
     {
+        _pool.Release(cube);
+
+        _cube.OldEnough -= ActionOnRealese;
+
         cube.gameObject.SetActive(false);
     }
 }
