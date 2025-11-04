@@ -1,89 +1,66 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine.Pool;
 using UnityEngine;
+using UnityEngine.Pool;
+using Random = UnityEngine.Random;
 
-public class Spawner : MonoBehaviour
+public abstract class Spawner<T> : MonoBehaviour where T : Object<T>
 {
-    [SerializeField] private Cube _cubePrefab;
-    [SerializeField] private Collider _spawnArea;
-    [SerializeField, Range(1,5)] private int  _delay;
-    [SerializeField] private int _poolCapacity;
-    [SerializeField] private int _maxPoolCapacity = 5;
+    [SerializeField] private T _objectPrefab;
+    [SerializeField] protected Collider SpawnArea;
+    [SerializeField] protected int PoolCapacity;
+    [SerializeField] protected int MaxPoolCapacity = 5;
 
-    private ObjectPool<Cube> _pool;
+    private ObjectPool<T> _pool;
+    private SpawnerInfo _spawnerInfo;
 
     private void OnValidate()
     {
-        if (_poolCapacity > _maxPoolCapacity)
-            _poolCapacity = _maxPoolCapacity -1;
+        if (PoolCapacity > MaxPoolCapacity)
+            PoolCapacity = MaxPoolCapacity -1;
     }
 
-    private void Awake()
+    protected virtual void Awake()
     {
-        _pool = new ObjectPool<Cube>(
-            createFunc: () => Instantiate(_cubePrefab),
-            actionOnGet: (obj) => ActionOnGet(obj),
-            actionOnRelease: (obj) => ActionOnRealese(obj),
-            actionOnDestroy: (obj) => Destroy(obj),
+        _pool = new ObjectPool<T>(
+            createFunc: CreateObject,
+            actionOnGet: ActionOnGet,
+            actionOnRelease: ActionOnRelease,
+            actionOnDestroy:  @object => Destroy(@object.gameObject),
             collectionCheck: true,
-            defaultCapacity: _poolCapacity,
-            maxSize: _maxPoolCapacity);
+            defaultCapacity: PoolCapacity,
+            maxSize: MaxPoolCapacity);
     }
 
-    private void Start()
+    private T CreateObject()
     {
-        StartCoroutine(Spawn());
+        Debug.Log("Spawning object");
+        
+        return Instantiate(_objectPrefab);
     }
-
-    private void GetCube()
+    
+    protected void GetObject()
     {
         _pool.Get();
     }
 
-    private void ActionOnGet(Cube cube)
+    protected virtual void ActionOnGet(T @object)
     {
-        float spawnAreaMinX = _spawnArea.bounds.min.x;
-        float spawnAreaMaxX = _spawnArea.bounds.max.x;
-
-        float spawnAreaMinZ = _spawnArea.bounds.min.z;
-        float spawnAreaMaxZ = _spawnArea.bounds.max.z;
-
-        float cubePositionX = Random.Range(spawnAreaMinX, spawnAreaMaxX); 
-        float cubePositionY = _spawnArea.bounds.min.y;
-        float cubePositionZ = Random.Range(spawnAreaMinZ, spawnAreaMaxZ);
-
-        cube.gameObject.transform.position = new Vector3(cubePositionX, cubePositionY, cubePositionZ);
-
-        cube.gameObject.SetActive(true);
-
-        cube.OldEnough += Release;
     }
 
-    private IEnumerator Spawn()
+    protected virtual void Release(T @object)
     {
-        while(_poolCapacity < _maxPoolCapacity)
+        if (@object.gameObject.activeSelf) 
         {
-            GetCube();
-
-            yield return new WaitForSecondsRealtime(_delay);
+            _pool.Release(@object);
         }
     }
 
-    private void Release(Cube cube)
+    protected virtual void ActionOnRelease(T @object)
     {
-        if (cube.gameObject.activeSelf) 
-        {
-            _pool.Release(cube);
-        }
-    }
+        @object.gameObject.SetActive(false);
 
-    private void ActionOnRealese(Cube cube)
-    {
-        cube.OldEnough -= ActionOnRealese;
-
-        cube.gameObject.SetActive(false);
-
-        cube.ResetCharactiristics();
+        @object.ResetCharacteristics();
     }
 }

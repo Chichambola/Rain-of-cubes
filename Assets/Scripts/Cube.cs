@@ -5,59 +5,44 @@ using Random = UnityEngine.Random;
 using UnityEngine;
 
 [RequireComponent(typeof(MeshRenderer), typeof(Rigidbody))]
-public class Cube : MonoBehaviour
+public class Cube : Object<Cube>
 {
-    private int _maxLifespan = 5;
-    private int _minLifespan = 2;
-    private int _currentLife;
-    private int _lifespan;
-    private bool _isCollisonOccured = false;
-    private Color _baseColor = Color.white;
-    private MeshRenderer _meshRenderer;
-    private Rigidbody _rigiRigidbody;
+    private bool _isCollisionOccured = false;
 
-    public event Action<Cube> OldEnough;
-    public bool IsDead => _currentLife == _lifespan;
-
-    private void Awake()
-    {
-        _rigiRigidbody = GetComponent<Rigidbody>();
-        _meshRenderer = GetComponent<MeshRenderer>();
-        _lifespan = Random.Range(_minLifespan, _maxLifespan);
-    }
-
+    public override event Action<Cube> OldEnough;
+    
     private void OnCollisionEnter(Collision collision)
     {
-        if (_isCollisonOccured == false && collision.collider.TryGetComponent<Platform>(out _))
+        if (_isCollisionOccured == false && collision.collider.TryGetComponent<Platform>(out _))
         {
-            _meshRenderer.material.color = Random.ColorHSV();
+            MeshRenderer.material.color = Random.ColorHSV();
 
             StartCoroutine(Aging());
             StopCoroutine(Aging());
 
-            _isCollisonOccured = true;
+            _isCollisionOccured = true;
         }
     }
 
-    private IEnumerator Aging()
+    protected override IEnumerator Aging()
     {
-        int delay = 1;
+        var wait = new WaitForSeconds(AgingDelay);
 
-        while (_currentLife < _lifespan)
+        while (CurrentLife < Lifespan)
         {
-            _currentLife++;
+            CurrentLife++;
 
-            yield return new WaitForSecondsRealtime(delay);
+            yield return wait;
         }
 
         if (IsDead)
             OldEnough?.Invoke(this);
     }
 
-    public void ResetCharactiristics()
+    public override void ResetCharacteristics()
     {
-        _currentLife = 0;
-        _isCollisonOccured = false;
-        _meshRenderer.material.color = _baseColor;
+        CurrentLife = 0;
+        _isCollisionOccured = false;
+        MeshRenderer.material.color = BaseColor;
     }
 }
