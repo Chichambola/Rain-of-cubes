@@ -1,22 +1,16 @@
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Pool;
 using Random = UnityEngine.Random;
 
 public class CubeSpawner : Spawner<Cube>
 {
-    [SerializeField, Range(1,5)] private int  _delay;
-    
+    [SerializeField, Range(1, 5)] private int _delay;
+    [SerializeField] private Collider _spawnArea;
+
     private Coroutine _coroutine;
-    
+
     public event Action<Cube> Released;
-    
-    protected override void Awake()
-    {
-        base.Awake();
-    }
 
     private void Start()
     {
@@ -25,19 +19,19 @@ public class CubeSpawner : Spawner<Cube>
 
     protected override void ActionOnGet(Cube cube)
     {
-        float spawnAreaMinX = SpawnArea.bounds.min.x;
-        float spawnAreaMaxX = SpawnArea.bounds.max.x;
+        float spawnAreaMinX = _spawnArea.bounds.min.x;
+        float spawnAreaMaxX = _spawnArea.bounds.max.x;
 
-        float spawnAreaMinZ = SpawnArea.bounds.min.z;
-        float spawnAreaMaxZ = SpawnArea.bounds.max.z;
+        float spawnAreaMinZ = _spawnArea.bounds.min.z;
+        float spawnAreaMaxZ = _spawnArea.bounds.max.z;
 
         float cubePositionX = Random.Range(spawnAreaMinX, spawnAreaMaxX);
-        float cubePositionY = SpawnArea.bounds.min.y;
+        float cubePositionY = _spawnArea.bounds.min.y;
         float cubePositionZ = Random.Range(spawnAreaMinZ, spawnAreaMaxZ);
 
         cube.gameObject.transform.position = new Vector3(cubePositionX, cubePositionY, cubePositionZ);
 
-        cube.gameObject.SetActive(true);
+        base.ActionOnGet(cube);
 
         cube.OldEnough += Release;
     }
@@ -45,15 +39,15 @@ public class CubeSpawner : Spawner<Cube>
     protected override void ActionOnRelease(Cube cube)
     {
         Released?.Invoke(cube);
-        
+
         base.ActionOnRelease(cube);
-        
+
         cube.OldEnough -= Release;
     }
 
     private IEnumerator Spawn()
     {
-        while(PoolCapacity < MaxPoolCapacity)
+        while (PoolCapacity < MaxPoolCapacity)
         {
             GetObject();
 

@@ -1,24 +1,39 @@
 using System;
 using System.Collections;
-using System.Collections.Generic;
-using Random = UnityEngine.Random;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 [RequireComponent(typeof(MeshRenderer), typeof(Rigidbody))]
-public class Cube : Object<Cube>
+public class Cube : Object
 {
-    private bool _isCollisionOccured = false;
+    [SerializeField] private Color _originalColor;
 
-    public override event Action<Cube> OldEnough;
-    
+    private bool _isCollisionOccured = false;
+    private MeshRenderer _meshRenderer;
+
+    public event Action<Cube> OldEnough;
+
+    protected override void Awake()
+    {
+        _meshRenderer = GetComponent<MeshRenderer>();
+        Rigidbody = GetComponent<Rigidbody>();
+        Lifespan = Random.Range(MinLifespan, MaxLifespan);
+    }
+
+    protected override void OnEnable()
+    {
+        _meshRenderer.material.color = _originalColor;
+
+        Coroutine = StartCoroutine(Aging());
+    }
+
     private void OnCollisionEnter(Collision collision)
     {
         if (_isCollisionOccured == false && collision.collider.TryGetComponent<Platform>(out _))
         {
-            MeshRenderer.material.color = Random.ColorHSV();
+            _meshRenderer.material.color = Random.ColorHSV();
 
             StartCoroutine(Aging());
-            StopCoroutine(Aging());
 
             _isCollisionOccured = true;
         }
@@ -28,7 +43,7 @@ public class Cube : Object<Cube>
     {
         var wait = new WaitForSeconds(AgingDelay);
 
-        while (CurrentLife < Lifespan)
+        while (CurrentLife != Lifespan)
         {
             CurrentLife++;
 
@@ -43,6 +58,6 @@ public class Cube : Object<Cube>
     {
         CurrentLife = 0;
         _isCollisionOccured = false;
-        MeshRenderer.material.color = BaseColor;
+        _meshRenderer.material.color = _originalColor;
     }
 }

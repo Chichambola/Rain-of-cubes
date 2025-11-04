@@ -1,45 +1,49 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Pool;
-using Random = UnityEngine.Random;
 
-public abstract class Spawner<T> : MonoBehaviour where T : Object<T>
+public abstract class Spawner<T> : MonoBehaviour where T : Object
 {
     [SerializeField] private T _objectPrefab;
-    [SerializeField] protected Collider SpawnArea;
     [SerializeField] protected int PoolCapacity;
     [SerializeField] protected int MaxPoolCapacity = 5;
 
     private ObjectPool<T> _pool;
     private SpawnerInfo _spawnerInfo;
 
+    public event Action<SpawnerInfo> ValuesChanged;
+
     private void OnValidate()
     {
         if (PoolCapacity > MaxPoolCapacity)
-            PoolCapacity = MaxPoolCapacity -1;
+            PoolCapacity = MaxPoolCapacity - 1;
     }
 
-    protected virtual void Awake()
+    protected void Awake()
     {
         _pool = new ObjectPool<T>(
             createFunc: CreateObject,
             actionOnGet: ActionOnGet,
             actionOnRelease: ActionOnRelease,
-            actionOnDestroy:  @object => Destroy(@object.gameObject),
+            actionOnDestroy: @object => Destroy(@object.gameObject),
             collectionCheck: true,
             defaultCapacity: PoolCapacity,
             maxSize: MaxPoolCapacity);
+
+        _spawnerInfo = new SpawnerInfo(_objectPrefab.name, 0, 0, 0);
+
+        ValuesChanged?.Invoke(_spawnerInfo);
     }
 
     private T CreateObject()
     {
-        Debug.Log("Spawning object");
-        
+        _spawnerInfo.InscreaseCreatedObjectCount();
+
+        ValuesChanged?.Invoke(_spawnerInfo);
+
         return Instantiate(_objectPrefab);
     }
-    
+
     protected void GetObject()
     {
         _pool.Get();
@@ -47,11 +51,18 @@ public abstract class Spawner<T> : MonoBehaviour where T : Object<T>
 
     protected virtual void ActionOnGet(T @object)
     {
+        @object.gameObject.SetActive(true);
+
+        _spawnerInfo.SetActiveObjectsCount(_pool.CountActive);
+
+        _spawnerInfo.InscreaseSpawnedObjectCount();
+
+        ValuesChanged?.Invoke(_spawnerInfo);
     }
 
-    protected virtual void Release(T @object)
+    protected void Release(T @object) 
     {
-        if (@object.gameObject.activeSelf) 
+        if (@object.gameObject.activeSelf)
         {
             _pool.Release(@object);
         }
@@ -62,5 +73,8 @@ public abstract class Spawner<T> : MonoBehaviour where T : Object<T>
         @object.gameObject.SetActive(false);
 
         @object.ResetCharacteristics();
+
+        _spawnerInfo.SetActiveObjectsCount(_pool.CountActive);
+        ValuesChanged?.Invoke(_spawnerInfo);
     }
 }

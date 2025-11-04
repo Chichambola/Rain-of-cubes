@@ -1,38 +1,25 @@
 using System;
 using System.Collections;
-using System.Collections.Generic;
-using Random = UnityEngine.Random;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 
-public abstract class Object<T>: MonoBehaviour
+public abstract class Object : MonoBehaviour
 {
-    [SerializeField] protected Color BaseColor;
-    
-    private int _maxLifespan = 5;
-    private int _minLifespan = 2;
-    protected int CurrentLife;
-    protected int Lifespan;
+    protected int MaxLifespan = 5;
+    protected int MinLifespan = 2;
+    protected int CurrentLife = 0;
+    protected int Lifespan = 0;
     protected int AgingDelay = 1;
 
-    protected MeshRenderer MeshRenderer;
     protected Rigidbody Rigidbody;
     protected Coroutine Coroutine;
-    
-    public virtual event Action<T> OldEnough;
-    protected bool IsDead => CurrentLife == Lifespan;
-    
-    private void Awake()
-    {
-        Rigidbody = GetComponent<Rigidbody>();
-        MeshRenderer = GetComponent<MeshRenderer>();
-        Lifespan = Random.Range(_minLifespan, _maxLifespan);
-    }
 
-    private void Start()
-    {
-        Coroutine = StartCoroutine(Aging());
-    }
+    protected bool IsDead => CurrentLife == Lifespan;
+
+    protected abstract void Awake();
+
+    protected abstract void OnEnable();
 
     protected abstract IEnumerator Aging();
 
