@@ -4,20 +4,20 @@ using TMPro;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
-public class Bomb : Object
+public class Bomb : PoolableObject
 {
-    [SerializeField] private MeshRenderer _renderer;
+    [SerializeField] private Exploder _exploder;
 
     private Coroutine _opacityCoroutine;
-    private Color _originalColor;
 
     public event Action<Bomb> OldEnough;
 
     protected override void Awake()
     {
         Rigidbody = GetComponent<Rigidbody>();
+        Renderer = GetComponent<MeshRenderer>();
         Lifespan = Random.Range(MinLifespan, MaxLifespan);
-        _originalColor = _renderer.material.color;
+        OriginalColor = Renderer.material.color;
     }
 
     protected override void OnEnable()
@@ -30,7 +30,7 @@ public class Bomb : Object
     public override void ResetCharacteristics()
     {
         CurrentLife = 0;
-        _renderer.material.color = _originalColor;
+        Renderer.material.color = OriginalColor;
     }
 
     protected override IEnumerator Aging()
@@ -46,19 +46,21 @@ public class Bomb : Object
 
         if (IsDead)
             OldEnough?.Invoke(this);
+
+        _exploder.CreateExplosion(this);
     }
 
     private IEnumerator ChangingOpacity()
     {
-        Color color = _renderer.material.color;
+        Color color = Renderer.material.color;
 
         int fullTransperancy = 0;
 
-        while (_renderer.material.color.a != fullTransperancy)
+        while (Renderer.material.color.a != fullTransperancy)
         {
             color.a = Mathf.Lerp(color.a, fullTransperancy, Time.deltaTime / Lifespan);
 
-            _renderer.material.color = color;
+            Renderer.material.color = color;
 
             yield return null;
         }

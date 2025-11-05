@@ -2,14 +2,14 @@ using System;
 using UnityEngine;
 using UnityEngine.Pool;
 
-public abstract class Spawner<T> : MonoBehaviour where T : Object
+public abstract class Spawner<T> : MonoBehaviour where T : PoolableObject
 {
     [SerializeField] protected int PoolCapacity;
     [SerializeField] protected int MaxPoolCapacity = 5;
     [SerializeField] private T _objectPrefab;
+    [SerializeField] private SpawnerInfo _spawnerInfo;
 
     private ObjectPool<T> _pool;
-    private SpawnerInfo _spawnerInfo;
 
     public event Action<SpawnerInfo> ValuesChanged;
 
@@ -21,6 +21,8 @@ public abstract class Spawner<T> : MonoBehaviour where T : Object
 
     protected void Awake()
     {
+        _spawnerInfo.SetStartValues(_objectPrefab.name, 0, 0, 0);
+
         _pool = new ObjectPool<T>(
             createFunc: CreateObject,
             actionOnGet: ActionOnGet,
@@ -29,8 +31,6 @@ public abstract class Spawner<T> : MonoBehaviour where T : Object
             collectionCheck: true,
             defaultCapacity: PoolCapacity,
             maxSize: MaxPoolCapacity);
-
-        _spawnerInfo = new SpawnerInfo(_objectPrefab.name, 0, 0, 0);
 
         ValuesChanged?.Invoke(_spawnerInfo);
     }

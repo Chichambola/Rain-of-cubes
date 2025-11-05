@@ -120,7 +120,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7361cab0ab14f56f1b7438b2ac27b07a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _renderer: {fileID: 7148073681389621925}
+  _exploder: {fileID: -6703262853894325621}
 --- !u!54 &8685108258623655151
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -160,7 +160,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4fcea741b1898754c8fd384c2c8c38bf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _bomb: {fileID: 8733583867944487499}
   _explosionForce: 344.5
   _explosionRadius: 501.8
   _numberOfColliders: 100

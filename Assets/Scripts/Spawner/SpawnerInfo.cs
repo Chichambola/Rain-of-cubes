@@ -7,7 +7,7 @@ public class SpawnerInfo : MonoBehaviour
     public int CreatedObjects { get; private set; }
     public int ActiveObjects { get; private set; }
 
-    public SpawnerInfo(string objectName, int spawnedObjects, int createdObjects, int activeObjects)
+    public void SetStartValues(string objectName, int spawnedObjects, int createdObjects, int activeObjects)
     {
         ObjectName = objectName;
         SpawnedObjects = spawnedObjects;

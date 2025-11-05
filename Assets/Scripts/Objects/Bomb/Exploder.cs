@@ -2,7 +2,6 @@ using UnityEngine;
 
 public class Exploder : MonoBehaviour
 {
-    [SerializeField] private Bomb _bomb;
     [SerializeField] private float _explosionForce;
     [SerializeField] private float _explosionRadius;
     [SerializeField] private int _numberOfColliders;
@@ -14,17 +13,7 @@ public class Exploder : MonoBehaviour
         _hitColliders = new Collider[_numberOfColliders];
     }
 
-    private void OnEnable()
-    {
-        _bomb.OldEnough += CreateExplosion;
-    }
-
-    private void OnDisable()
-    {
-        _bomb.OldEnough -= CreateExplosion;
-    }
-
-    private void CreateExplosion(Bomb bomb)
+    public void CreateExplosion(Bomb bomb)
     {
         int hits = Physics.OverlapSphereNonAlloc(bomb.transform.position, _explosionRadius, _hitColliders);
 

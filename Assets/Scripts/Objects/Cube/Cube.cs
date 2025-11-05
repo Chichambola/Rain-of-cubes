@@ -4,25 +4,22 @@ using UnityEngine;
 using Random = UnityEngine.Random;
 
 [RequireComponent(typeof(MeshRenderer), typeof(Rigidbody))]
-public class Cube : Object
+public class Cube : PoolableObject
 {
-    [SerializeField] private Color _originalColor;
-
     private bool _isCollisionOccured = false;
-    private MeshRenderer _meshRenderer;
 
     public event Action<Cube> OldEnough;
 
     protected override void Awake()
     {
-        _meshRenderer = GetComponent<MeshRenderer>();
+        Renderer = GetComponent<MeshRenderer>();
         Rigidbody = GetComponent<Rigidbody>();
         Lifespan = Random.Range(MinLifespan, MaxLifespan);
     }
 
     protected override void OnEnable()
     {
-        _meshRenderer.material.color = _originalColor;
+        Renderer.material.color = OriginalColor;
 
         Coroutine = StartCoroutine(Aging());
     }
@@ -31,7 +28,7 @@ public class Cube : Object
     {
         if (_isCollisionOccured == false && collision.collider.TryGetComponent<Platform>(out _))
         {
-            _meshRenderer.material.color = Random.ColorHSV();
+            Renderer.material.color = Random.ColorHSV();
 
             StartCoroutine(Aging());
 
@@ -58,6 +55,6 @@ public class Cube : Object
     {
         CurrentLife = 0;
         _isCollisionOccured = false;
-        _meshRenderer.material.color = _originalColor;
+        Renderer.material.color =  OriginalColor;
     }
 }

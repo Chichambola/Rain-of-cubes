@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 
-public class InfoView<T> : MonoBehaviour where T : Object 
+public class InfoView<T> : MonoBehaviour where T : PoolableObject 
 {
     [SerializeField] private Spawner<T> _spawner;
     [SerializeField] private TextMeshProUGUI _text;
